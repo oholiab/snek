@@ -38,8 +38,15 @@
   (assoc snake :body (cons (add-points (first body) dir)
                           (if grow body (butlast body)))))
 
-(defn move-apple [{location :location :as apple} direction]
-  (assoc apple :location (map + location (:direction dirs))))
+(defn add-vectors [vec1 vec2]
+  (vec (map + vec1 vec2)))
+
+(defn new-apple-location [{location :location :as apple} transpose]
+  (assoc apple :location (add-vectors location transpose)))
+
+
+(defn move-apple [apple newdir]
+  (when newdir (dosync (alter apple new-apple-location newdir))))
 
 (defn win? [{body :body}]
   (>= (count body) win-length))
@@ -101,7 +108,8 @@
         (JOptionPane/showMessageDialog frame "You win!"))
       (.repaint this))
     (keyPressed [e]
-      (update-direction snake (dirs (.getKeyCode e))))
+      ;(update-direction snake (dirs (.getKeyCode e)))
+      (move-apple apple (dirs (.getKeyCode e))))
     (getPreferredSize []
       (Dimension. (* (inc width) point-size)
                   (* (inc height) point-size)))
