@@ -16,8 +16,12 @@
             VK_UP     [ 0 -1]
             VK_DOWN   [ 0  1]})
 
+(defn wrap-around [pt]
+  [(if (= (inc width) (first pt)) 0 (if (= -1 (first pt)) width (first pt)))
+   (if (= (inc height) (second pt)) 0 (if (= -1 (second pt)) height (second pt)))])
+
 (defn add-points [& pts]
-  (vec (apply map + pts)))
+  (wrap-around (vec (apply map + pts))))
 
 (defn point-to-screen-rect [pt]
   (map #(* point-size %)
@@ -42,7 +46,7 @@
   (vec (map + vec1 vec2)))
 
 (defn new-apple-location [{location :location :as apple} transpose]
-  (assoc apple :location (add-vectors location transpose)))
+  (assoc apple :location (wrap-around (add-vectors location transpose))))
 
 
 (defn move-apple [apple newdir]
@@ -101,7 +105,9 @@
     (actionPerformed [e]
       (if (= (rand-int 10) 1)
         (let [i (rand-int 4) dirlist (keys dirs)]
-          (update-direction snake (dirs (nth dirlist i)))))
+          ; Next line does not work FIXME
+          (if (not (= {:dir snake} (dirs (nth dirlist i))))
+            (update-direction snake (dirs (nth dirlist i))))))
       (update-positions snake apple)
       (when (lose? @snake)
         (reset-game snake apple)
