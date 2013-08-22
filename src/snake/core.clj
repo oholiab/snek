@@ -99,6 +99,9 @@
       (paint g @snake)
       (paint g @apple))
     (actionPerformed [e]
+      (if (= (rand-int 10) 1)
+        (let [i (rand-int 4) dirlist (keys dirs)]
+          (update-direction snake (dirs (nth dirlist i)))))
       (update-positions snake apple)
       (when (lose? @snake)
         (reset-game snake apple)
