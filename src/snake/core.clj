@@ -66,6 +66,9 @@
 (defn turn [snake newdir]
   (assoc snake :dir newdir))
 
+(defn double-back? [{dir :dir} newdir]
+  (if (= (add-vectors dir newdir) [0 0]) true false))
+
 (defn reset-game [snake apple]
   (dosync (ref-set apple (create-apple))
           (ref-set snake (create-snake)))
@@ -96,6 +99,11 @@
   (doseq [point body]
     (fill-point g point color)))
 
+(defn random-turn [{dir :dir :as snake}]
+  (let [i (rand-int 4) dirlist (keys dirs)]
+    (if (not (double-back? @snake (dirs (nth dirlist i))))
+      (update-direction snake (dirs (nth dirlist i))))))
+
 (defn game-panel [frame snake apple]
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
@@ -104,10 +112,7 @@
       (paint g @apple))
     (actionPerformed [e]
       (if (= (rand-int 10) 1)
-        (let [i (rand-int 4) dirlist (keys dirs)]
-          ; Next line does not work FIXME
-          (if (not (= {:dir snake} (dirs (nth dirlist i))))
-            (update-direction snake (dirs (nth dirlist i))))))
+        (random-turn snake))
       (update-positions snake apple)
       (when (lose? @snake)
         (reset-game snake apple)
